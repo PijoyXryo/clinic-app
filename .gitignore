@@ -1,4 +1,19 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
 *.tsbuildinfo
+
+# Secrets (keep .env.example!)
 .env
+.env.*
+!.env.example
+
+# Logs & test output
+*.log
+coverage/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
