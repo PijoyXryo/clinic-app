@@ -1,6 +1,0 @@
-[
-  { "number": 1, "name": "Ahmad", "age": 8, "status": "done" },
-  { "number": 2, "name": "Siti", "age": 35, "status": "done" },
-  { "number": 3, "name": "Tan", "age": 62, "status": "called" },
-  { "number": 4, "name": "Kavitha", "age": 5, "status": "waiting" }
-]

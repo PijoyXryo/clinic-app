@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { AppointmentsService } from './appointments.service.js';
 import { Appointment } from './appointment.entity.js';
 import { CreateAppointmentDto } from './dto/create-appointment.dto.js';

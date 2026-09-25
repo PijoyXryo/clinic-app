@@ -26,7 +26,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: false, // never let TypeORM change our tables automatically
-        logging: true,      // print the SQL it runs, for learning
+        logging: true, // print the SQL it runs, for learning
       }),
     }),
 

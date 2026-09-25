@@ -47,7 +47,10 @@ export class AppointmentsService {
   }
 
   // Call / done / back to waiting
-  async updateStatus(id: number, status: AppointmentStatus): Promise<Appointment> {
+  async updateStatus(
+    id: number,
+    status: AppointmentStatus,
+  ): Promise<Appointment> {
     const appointment = await this.appointmentsRepo.findOneBy({ id });
     if (!appointment) {
       throw new NotFoundException(`Appointment ${id} not found`);

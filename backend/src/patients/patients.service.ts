@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Patient } from './patient.entity.js';
@@ -27,9 +31,11 @@ export class PatientsService {
   async create(dto: CreatePatientDto): Promise<Patient> {
     const exists = await this.patientsRepo.existsBy({ icNumber: dto.icNumber });
     if (exists) {
-      throw new ConflictException(`IC number ${dto.icNumber} is already registered`);
+      throw new ConflictException(
+        `IC number ${dto.icNumber} is already registered`,
+      );
     }
     const patient = this.patientsRepo.create(dto); // build the object
-    return this.patientsRepo.save(patient);         // INSERT into the database
+    return this.patientsRepo.save(patient); // INSERT into the database
   }
 }
