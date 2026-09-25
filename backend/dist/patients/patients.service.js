@@ -4,7 +4,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 let PatientsService = class PatientsService {
     patients = [
         { id: 1, fullName: 'Ahmad bin Ali', icNumber: '180101-14-1111', age: 8 },
@@ -19,6 +19,16 @@ let PatientsService = class PatientsService {
         if (!patient) {
             throw new NotFoundException(`Patient ${id} not found`);
         }
+        return patient;
+    }
+    create(dto) {
+        const exists = this.patients.some((p) => p.icNumber === dto.icNumber);
+        if (exists) {
+            throw new ConflictException(`IC number ${dto.icNumber} is already registered`);
+        }
+        const nextId = Math.max(0, ...this.patients.map((p) => p.id)) + 1;
+        const patient = { id: nextId, ...dto };
+        this.patients.push(patient);
         return patient;
     }
 };

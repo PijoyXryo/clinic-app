@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Patient } from './patient.interface.js';
+import { CreatePatientDto } from './dto/create-patient.dto.js';
 
 @Injectable()
 export class PatientsService {
@@ -19,6 +20,20 @@ export class PatientsService {
     if (!patient) {
       throw new NotFoundException(`Patient ${id} not found`);
     }
+    
+    return patient;
+  }
+
+    create(dto: CreatePatientDto): Patient {
+    // Business rule: IC numbers must be unique
+    const exists = this.patients.some((p) => p.icNumber === dto.icNumber);
+    if (exists) {
+      throw new ConflictException(`IC number ${dto.icNumber} is already registered`);
+    }
+
+    const nextId = Math.max(0, ...this.patients.map((p) => p.id)) + 1;
+    const patient: Patient = { id: nextId, ...dto };
+    this.patients.push(patient);
     return patient;
   }
 }

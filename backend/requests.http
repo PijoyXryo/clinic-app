@@ -1,0 +1,43 @@
+### 1. Get all patients
+GET http://localhost:3000/patients
+
+### 2. Create a valid patient → 201
+POST http://localhost:3000/patients
+Content-Type: application/json
+
+{
+  "fullName": "Lim Ah Kow",
+  "icNumber": "700707-07-7777",
+  "age": 56
+}
+
+### 3. Bad data → 400
+POST http://localhost:3000/patients
+Content-Type: application/json
+
+{
+  "fullName": "",
+  "icNumber": "123",
+  "age": -5
+}
+
+### 4. Same IC again → 409
+POST http://localhost:3000/patients
+Content-Type: application/json
+
+{
+  "fullName": "Copy Cat",
+  "icNumber": "700707-07-7777",
+  "age": 30
+}
+
+### 5. Sneaky extra field → 400
+POST http://localhost:3000/patients
+Content-Type: application/json
+
+{
+  "fullName": "Hacker",
+  "icNumber": "990909-09-9999",
+  "age": 20,
+  "isAdmin": true
+}

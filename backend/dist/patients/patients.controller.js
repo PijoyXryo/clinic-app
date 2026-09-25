@@ -10,8 +10,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { PatientsService } from './patients.service.js';
+import { CreatePatientDto } from './dto/create-patient.dto.js';
 let PatientsController = class PatientsController {
     patientsService;
     constructor(patientsService) {
@@ -22,6 +23,9 @@ let PatientsController = class PatientsController {
     }
     findOne(id) {
         return this.patientsService.findOne(id);
+    }
+    create(dto) {
+        return this.patientsService.create(dto);
     }
 };
 __decorate([
@@ -37,6 +41,13 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Object)
 ], PatientsController.prototype, "findOne", null);
+__decorate([
+    Post(),
+    __param(0, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [CreatePatientDto]),
+    __metadata("design:returntype", Object)
+], PatientsController.prototype, "create", null);
 PatientsController = __decorate([
     Controller('patients'),
     __metadata("design:paramtypes", [PatientsService])
