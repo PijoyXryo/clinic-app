@@ -1,7 +1,10 @@
+import RegisterPatientForm from '@/components/RegisterPatientForm';
+
 type Patient = {
   id: number;
   fullName: string;
   icNumber: string;
+  dateOfBirth: string;
   age: number | null;
   createdAt: string;
 };
@@ -16,23 +19,28 @@ export default async function PatientsPage() {
   const patients: Patient[] = await res.json();
 
   return (
-    <section className="card">
-      <h2>Latest Patients ({patients.length})</h2>
-      <table>
-        <thead>
-          <tr><th>ID</th><th>Name</th><th>IC Number</th><th>Age</th></tr>
-        </thead>
-        <tbody>
-          {patients.map((p) => (
-            <tr key={p.id}>
-              <td>{p.id}</td>
-              <td>{p.fullName}</td>
-              <td>{p.icNumber}</td>
-              <td>{p.age ?? '-'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </section>
+    <>
+      <RegisterPatientForm />
+
+      <section className="card">
+        <h2>Latest Patients ({patients.length})</h2>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Name</th><th>IC Number</th><th>Date of Birth</th><th>Age</th></tr>
+          </thead>
+          <tbody>
+            {patients.map((p) => (
+              <tr key={p.id}>
+                <td>{p.id}</td>
+                <td>{p.fullName}</td>
+                <td>{p.icNumber}</td>
+                <td>{new Date(p.dateOfBirth).toLocaleDateString('en-MY')}</td>
+                <td>{p.age ?? '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    </>
   );
 }

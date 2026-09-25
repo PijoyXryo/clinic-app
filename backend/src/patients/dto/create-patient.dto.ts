@@ -1,12 +1,4 @@
-import {
-  IsInt,
-  IsNotEmpty,
-  IsString,
-  Matches,
-  Max,
-  MaxLength,
-  Min,
-} from 'class-validator';
+import { IsNotEmpty, IsString, Matches, MaxLength } from 'class-validator';
 
 export class CreatePatientDto {
   @IsString()
@@ -18,9 +10,4 @@ export class CreatePatientDto {
     message: 'icNumber must look like 900101-14-5678',
   })
   icNumber!: string;
-
-  @IsInt()
-  @Min(0)
-  @Max(120)
-  age!: number;
 }

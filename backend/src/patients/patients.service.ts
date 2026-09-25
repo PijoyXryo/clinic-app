@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -8,6 +9,7 @@ import { Repository } from 'typeorm';
 import { Patient } from './patient.entity.js';
 import { CreatePatientDto } from './dto/create-patient.dto.js';
 
+import { birthDateFromIc } from './ic.util.js';
 @Injectable()
 export class PatientsService {
   constructor(
@@ -28,14 +30,18 @@ export class PatientsService {
     return patient;
   }
 
-  async create(dto: CreatePatientDto): Promise<Patient> {
+    async create(dto: CreatePatientDto): Promise<Patient> {
+    const dateOfBirth = birthDateFromIc(dto.icNumber);
+    if (!dateOfBirth) {
+      throw new BadRequestException('IC number does not contain a valid date of birth');
+    }
+
     const exists = await this.patientsRepo.existsBy({ icNumber: dto.icNumber });
     if (exists) {
-      throw new ConflictException(
-        `IC number ${dto.icNumber} is already registered`,
-      );
+      throw new ConflictException(`IC number ${dto.icNumber} is already registered`);
     }
-    const patient = this.patientsRepo.create(dto); // build the object
-    return this.patientsRepo.save(patient); // INSERT into the database
-  }
+
+    const patient = this.patientsRepo.create({ ...dto, dateOfBirth });
+    return this.patientsRepo.save(patient);
+    }
 }

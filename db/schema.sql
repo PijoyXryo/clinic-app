@@ -1,11 +1,11 @@
 -- Clinic database structure
 
 CREATE TABLE patients (
-  id          SERIAL PRIMARY KEY,
-  full_name   VARCHAR(150) NOT NULL,
-  ic_number   VARCHAR(20)  NOT NULL UNIQUE,
-  age         INT CHECK (age >= 0),
-  created_at  TIMESTAMP    NOT NULL DEFAULT NOW()
+  id             SERIAL PRIMARY KEY,
+  full_name      VARCHAR(150) NOT NULL,
+  ic_number      VARCHAR(20)  NOT NULL UNIQUE,
+  date_of_birth  DATE         NOT NULL,
+  created_at     TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE appointments (
