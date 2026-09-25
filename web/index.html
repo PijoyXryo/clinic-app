@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Klinik MediQueue</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1>🏥 Klinik MediQueue</h1>
+    <nav>
+      <a href="#queue">Queue</a>
+      <a href="#register">Register</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="card now-serving">
+      <p>Now serving</p>
+      <h2>#3</h2>
+      <p>Tan Wei Ming</p>
+    </section>
+
+    <section class="card" id="queue">
+      <h2>Today's Queue</h2>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Name</th><th>Age</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Ahmad</td><td>8</td><td><span class="badge done">done</span></td></tr>
+          <tr><td>2</td><td>Siti</td><td>35</td><td><span class="badge done">done</span></td></tr>
+          <tr><td>3</td><td>Tan</td><td>62</td><td><span class="badge called">called</span></td></tr>
+          <tr><td>4</td><td>Kavitha</td><td>5</td><td><span class="badge waiting">waiting</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card" id="register">
+      <h2>Register Patient</h2>
+      <form>
+        <label for="name">Full name</label>
+        <input id="name" type="text" placeholder="e.g. Ali bin Abu" required>
+
+        <label for="age">Age</label>
+        <input id="age" type="number" min="0" max="120" required>
+
+        <button type="submit">Add to queue</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>© 2026 Klinik MediQueue</footer>
+
+</body>
+</html>g
