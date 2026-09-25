@@ -17,3 +17,7 @@ CREATE TABLE appointments (
   status        VARCHAR(20) NOT NULL DEFAULT 'waiting',
   fee           NUMERIC(8,2) NOT NULL
 );
+
+-- Indexes: speed up the most common queries
+CREATE INDEX idx_appointments_patient ON appointments (patient_id);  -- patient history
+CREATE INDEX idx_appointments_date    ON appointments (visit_date);  -- today's queue
