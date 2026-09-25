@@ -1,39 +1,35 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import type { Patient } from './patient.interface.js';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Patient } from './patient.entity.js';
 import { CreatePatientDto } from './dto/create-patient.dto.js';
 
 @Injectable()
 export class PatientsService {
-  // Temporary data in memory. Lesson 16 replaces this with PostgreSQL.
-  private patients: Patient[] = [
-    { id: 1, fullName: 'Ahmad bin Ali', icNumber: '180101-14-1111', age: 8 },
-    { id: 2, fullName: 'Siti Aminah', icNumber: '910315-10-2222', age: 35 },
-    { id: 3, fullName: 'Tan Wei Ming', icNumber: '640720-08-3333', age: 62 },
-  ];
+  constructor(
+    @InjectRepository(Patient)
+    private readonly patientsRepo: Repository<Patient>,
+  ) {}
 
-  findAll(): Patient[] {
-    return this.patients;
+  // Newest 50 patients (never load 20,000 rows at once!)
+  findAll(): Promise<Patient[]> {
+    return this.patientsRepo.find({ order: { id: 'DESC' }, take: 50 });
   }
 
-  findOne(id: number): Patient {
-    const patient = this.patients.find((p) => p.id === id);
+  async findOne(id: number): Promise<Patient> {
+    const patient = await this.patientsRepo.findOneBy({ id });
     if (!patient) {
       throw new NotFoundException(`Patient ${id} not found`);
     }
-    
     return patient;
   }
 
-    create(dto: CreatePatientDto): Patient {
-    // Business rule: IC numbers must be unique
-    const exists = this.patients.some((p) => p.icNumber === dto.icNumber);
+  async create(dto: CreatePatientDto): Promise<Patient> {
+    const exists = await this.patientsRepo.existsBy({ icNumber: dto.icNumber });
     if (exists) {
       throw new ConflictException(`IC number ${dto.icNumber} is already registered`);
     }
-
-    const nextId = Math.max(0, ...this.patients.map((p) => p.id)) + 1;
-    const patient: Patient = { id: nextId, ...dto };
-    this.patients.push(patient);
-    return patient;
+    const patient = this.patientsRepo.create(dto); // build the object
+    return this.patientsRepo.save(patient);         // INSERT into the database
   }
 }

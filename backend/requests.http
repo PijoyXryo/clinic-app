@@ -1,17 +1,20 @@
-### 1. Get all patients
+### 1. Get all patients (newest 50)
 GET http://localhost:3000/patients
 
-### 2. Create a valid patient → 201
+### 2. Get one patient from the real database
+GET http://localhost:3000/patients/1
+
+### 3. Create a new patient → 201
 POST http://localhost:3000/patients
 Content-Type: application/json
 
 {
-  "fullName": "Lim Ah Kow",
-  "icNumber": "700707-07-7777",
-  "age": 56
+  "fullName": "Nurul Huda",
+  "icNumber": "950101-10-8888",
+  "age": 29
 }
 
-### 3. Bad data → 400
+### 4. Bad data → 400
 POST http://localhost:3000/patients
 Content-Type: application/json
 
@@ -21,7 +24,7 @@ Content-Type: application/json
   "age": -5
 }
 
-### 4. Same IC again → 409
+### 5. IC already in database (Lim from Lesson 12) → 409
 POST http://localhost:3000/patients
 Content-Type: application/json
 
@@ -31,7 +34,7 @@ Content-Type: application/json
   "age": 30
 }
 
-### 5. Sneaky extra field → 400
+### 6. Sneaky extra field → 400
 POST http://localhost:3000/patients
 Content-Type: application/json
 
