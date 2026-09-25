@@ -72,3 +72,11 @@ button {
 button:hover { opacity: 0.9; }
 
 footer { text-align: center; padding: 24px; color: #888; }
+
+/* Buttons inside the table */
+td button { padding: 4px 10px; font-size: 13px; margin-right: 4px; }
+button.secondary { background: #e5e8eb; color: var(--text); }
+
+/* Loading / error message */
+#message { text-align: center; font-weight: 600; }
+#message.error { color: #b00020; }

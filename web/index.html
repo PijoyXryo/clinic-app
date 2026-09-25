@@ -17,30 +17,28 @@
   </header>
 
   <main>
+    <p id="message"></p>
+
     <section class="card now-serving">
       <p>Now serving</p>
-      <h2>#3</h2>
-      <p>Tan Wei Ming</p>
+      <h2 id="now-number">—</h2>
+      <p id="now-name">No one yet</p>
     </section>
 
     <section class="card" id="queue">
       <h2>Today's Queue</h2>
       <table>
         <thead>
-          <tr><th>#</th><th>Name</th><th>Age</th><th>Status</th></tr>
+          <tr><th>#</th><th>Name</th><th>Age</th><th>Fee</th><th>Status</th><th>Actions</th></tr>
         </thead>
-        <tbody>
-          <tr><td>1</td><td>Ahmad</td><td>8</td><td><span class="badge done">done</span></td></tr>
-          <tr><td>2</td><td>Siti</td><td>35</td><td><span class="badge done">done</span></td></tr>
-          <tr><td>3</td><td>Tan</td><td>62</td><td><span class="badge called">called</span></td></tr>
-          <tr><td>4</td><td>Kavitha</td><td>5</td><td><span class="badge waiting">waiting</span></td></tr>
-        </tbody>
+        <tbody id="queue-body"></tbody>
       </table>
+      <p><button id="reset" class="secondary">Reset demo data</button></p>
     </section>
 
     <section class="card" id="register">
       <h2>Register Patient</h2>
-      <form>
+      <form id="register-form">
         <label for="name">Full name</label>
         <input id="name" type="text" placeholder="e.g. Ali bin Abu" required>
 
@@ -54,5 +52,6 @@
 
   <footer>© 2026 Klinik MediQueue</footer>
 
+  <script src="app.js"></script>
 </body>
-</html>g
+</html>
