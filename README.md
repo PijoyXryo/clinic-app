@@ -18,6 +18,7 @@ clinic-app/
 ├── backend/   NestJS REST API (patients, appointments)
 ├── frontend/  Next.js app (queue page, patients page)
 ├── db/        PostgreSQL schema and migrations
+├── legacy-his/ Legacy hospital system (PHP Yii2 + MariaDB)
 └── basics/    JavaScript practice scripts
 ```
 
@@ -25,6 +26,7 @@ clinic-app/
 - **Patients:** register and list patients, with validation (IC number format and date), date of birth and age calculated automatically from the IC, and duplicate IC detection
 - **Appointments:** book patients into today's queue with automatic queue numbers and fees (child / adult / senior)
 - **Live queue:** call and complete patients; only one patient can be "called" at a time; screens refresh every 5 seconds
+- **Hospital integration:** imports patients from a legacy PHP (Yii2) + MariaDB hospital system via REST, with API key auth, timeouts, and graceful fallback when it's down
 - **Security:** input whitelist (blocks mass assignment), CORS restricted to the web app, secrets kept in `.env`
 
 ## API endpoints
@@ -36,6 +38,10 @@ clinic-app/
 | GET | `/appointments/today` | Today's queue with patient details |
 | POST | `/appointments` | Book a patient into today's queue |
 | PATCH | `/appointments/:id/status` | Set status: `waiting`, `called`, `done` |
+| GET | `/patients/by-ic/:icNumber` | Find a patient by IC (used by check-in) |
+| GET | `/his/patients` | Preview hospital (legacy) patients |
+| POST | `/his/sync` | Import all hospital patients (idempotent) |
+| POST | `/his/import/:icNumber` | Import one patient by IC |
 
 ## Run it locally
 **1. Database**
@@ -66,11 +72,12 @@ npm run dev             # website on http://localhost:3001
 - **Secrets:** keeping passwords out of Git with `.env` and `.env.example`
 - **Refactoring:** replaced a stored `age` column (goes stale every birthday) with `date_of_birth` derived from the IC, using a database migration
 - **React:** Server vs Client Components, `useState`, `useEffect` with cleanup, lifting state up
+- **Integration:** connecting to a legacy system with timeouts, 502/504 error handling, data mapping and graceful degradation
 - **Git workflow:** feature branches, pull requests and merging
 
 ## Roadmap
 - [x] Rebuild the frontend with Next.js (React)
 - [ ] Real-time queue updates with WebSockets
-- [ ] Legacy hospital system integration (PHP Yii2 + MariaDB)
+- [x] Legacy hospital system integration (PHP Yii2 + MariaDB)
 - [ ] Docker, CI/CD and deployment to AWS
 - [ ] AI assistant (RAG with Ollama + Qdrant)

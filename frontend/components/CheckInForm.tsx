@@ -6,11 +6,10 @@ import { getFee } from '@/lib/fee';
 import { ageFromIc } from '@/lib/ic';
 import type { Appointment, Patient } from '@/lib/types';
 
-// The screen is always in exactly ONE of these situations
 type Lookup =
   | { status: 'idle' }
   | { status: 'checking' }
-  | { status: 'found'; patient: Patient }
+  | { status: 'found'; patient: Patient; fromHospital: boolean } // NEW: fromHospital
   | { status: 'new' };
 
 type Message = { type: 'success' | 'error'; text: string } | null;
@@ -23,19 +22,17 @@ export default function CheckInForm({ onBooked }: { onBooked: () => void }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<Message>(null);
 
-  // Derived from the IC
   const ic = icNumber.trim();
   const age = ageFromIc(ic);
   const icComplete = ic.length === 14;
 
-  // Typing a different IC resets the search
   function handleIcChange(value: string) {
     setIcNumber(value);
     setLookup({ status: 'idle' });
     setMessage(null);
   }
 
-  // ===== STEP 1: search by IC =====
+  // ===== STEP 1: clinic first, then hospital system =====
   async function checkIc(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (age === null) return;
@@ -43,13 +40,30 @@ export default function CheckInForm({ onBooked }: { onBooked: () => void }) {
     setLookup({ status: 'checking' });
     try {
       const patient = await api<Patient>(`/patients/by-ic/${encodeURIComponent(ic)}`);
-      setLookup({ status: 'found', patient });
+      setLookup({ status: 'found', patient, fromHospital: false });
     } catch (error) {
-      if (error instanceof ApiError && error.status === 404) {
-        setLookup({ status: 'new' }); // not an error! just a new patient
-      } else {
+      if (!(error instanceof ApiError && error.status === 404)) {
         setLookup({ status: 'idle' });
         setMessage({ type: 'error', text: `❌ ${(error as Error).message}` });
+        return;
+      }
+
+      // NEW: not in the clinic, so maybe the hospital system knows them?
+      try {
+        const imported = await api<Patient>(`/his/import/${encodeURIComponent(ic)}`, {
+          method: 'POST',
+        });
+        setLookup({ status: 'found', patient: imported, fromHospital: true });
+      } catch (hisError) {
+        setLookup({ status: 'new' });
+        // 404 = hospital doesn't know them either (normal).
+        // Anything else = hospital system down, but the clinic keeps working!
+        if (!(hisError instanceof ApiError && hisError.status === 404)) {
+          setMessage({
+            type: 'error',
+            text: '⚠️ Hospital system unavailable, so please register the patient manually',
+          });
+        }
       }
     }
   }
@@ -101,7 +115,6 @@ export default function CheckInForm({ onBooked }: { onBooked: () => void }) {
     <section className="card">
       <h2>Patient Check-in</h2>
 
-      {/* STEP 1 */}
       <form onSubmit={checkIc} noValidate>
         <label htmlFor="checkin-ic">IC number</label>
         <input
@@ -120,18 +133,19 @@ export default function CheckInForm({ onBooked }: { onBooked: () => void }) {
         </button>
       </form>
 
-      {/* STEP 2a: returning patient */}
       {lookup.status === 'found' && (
         <div className="lookup-box found">
           <p>
-            ✅ <strong>Returning patient:</strong> {lookup.patient.fullName}
+            {/* NEW: show where the patient came from */}
+            {lookup.fromHospital ? '🏥 ' : '✅ '}
+            <strong>{lookup.fromHospital ? 'Imported from hospital system:' : 'Returning patient:'}</strong>{' '}
+            {lookup.patient.fullName}
             {' · '}Age {lookup.patient.age}
             {age !== null && <> · Fee RM{getFee(age)}</>}
           </p>
         </div>
       )}
 
-      {/* STEP 2b: new patient */}
       {lookup.status === 'new' && (
         <div className="lookup-box new">
           <p>🆕 <strong>New patient</strong>: not registered yet. Enter their name:</p>
@@ -145,7 +159,6 @@ export default function CheckInForm({ onBooked }: { onBooked: () => void }) {
         </div>
       )}
 
-      {/* STEP 3: reason + button (for both cases) */}
       {(lookup.status === 'found' || lookup.status === 'new') && (
         <div className="stack">
           <label htmlFor="checkin-reason">Reason (optional)</label>

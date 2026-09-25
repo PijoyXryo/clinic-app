@@ -6,6 +6,7 @@ import { PatientsModule } from './patients/patients.module.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppointmentsModule } from './appointments/appointments.module.js';
+import { HisModule } from './his/his.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -26,7 +27,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: false, // never let TypeORM change our tables automatically
-        logging: true, // print the SQL it runs, for learning
+        logging: ['error'], // only log failed queries
       }),
     }),
 
@@ -39,6 +40,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     }),
     PatientsModule,
     AppointmentsModule,
+    HisModule,
   ],
   controllers: [AppController],
   providers: [AppService],

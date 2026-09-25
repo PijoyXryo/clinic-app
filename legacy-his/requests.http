@@ -1,28 +1,28 @@
 ### 1. No API key → 401
-GET http://localhost:8080/patients
+GET http://127.0.0.1:8080/patients
 
 ### 2. All patients
-GET http://localhost:8080/patients
+GET http://127.0.0.1:8080/patients
 X-Api-Key: dev-key
 
 ### 3. Search by name
-GET http://localhost:8080/patients?q=binti
+GET http://127.0.0.1:8080/patients?q=binti
 X-Api-Key: dev-key
 
 ### 4. One patient
-GET http://localhost:8080/patients/2
+GET http://127.0.0.1:8080/patients/2
 X-Api-Key: dev-key
 
 ### 5. Find by IC
-GET http://localhost:8080/patients/by-ic/850612-10-1234
+GET http://127.0.0.1:8080/patients/by-ic/850612-10-1234
 X-Api-Key: dev-key
 
 ### 6. Not found → 404
-GET http://localhost:8080/patients/999
+GET http://127.0.0.1:8080/patients/999
 X-Api-Key: dev-key
 
 ### 7. Create → 201
-POST http://localhost:8080/patients
+POST http://127.0.0.1:8080/patients
 X-Api-Key: dev-key
 Content-Type: application/json
 
@@ -33,7 +33,7 @@ Content-Type: application/json
 }
 
 ### 8. Bad data → 422 (Malay messages!)
-POST http://localhost:8080/patients
+POST http://127.0.0.1:8080/patients
 X-Api-Key: dev-key
 Content-Type: application/json
 
@@ -43,5 +43,5 @@ Content-Type: application/json
 }
 
 ### 9. Unknown URL → 404
-GET http://localhost:8080/doctors
+GET http://127.0.0.1:8080/doctors
 X-Api-Key: dev-key
