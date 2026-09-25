@@ -7,7 +7,7 @@ Receptionists register patients and book them into today's queue. The queue page
 ## Tech stack
 | Layer | Technology |
 |---|---|
-| Frontend | HTML, CSS, JavaScript (Fetch API) — Next.js version coming next |
+| Frontend | Next.js 16 (React 19, TypeScript) |
 | Backend | NestJS 12 (TypeScript), REST API, class-validator |
 | Database | PostgreSQL 18 with TypeORM |
 | Tools | Git, GitHub, VS Code REST Client |
@@ -16,13 +16,13 @@ Receptionists register patients and book them into today's queue. The queue page
 ```
 clinic-app/
 ├── backend/   NestJS REST API (patients, appointments)
-├── db/        PostgreSQL schema and indexes
-├── web/       Queue page and patients page
+├── frontend/  Next.js app (queue page, patients page)
+├── db/        PostgreSQL schema and migrations
 └── basics/    JavaScript practice scripts
 ```
 
 ## Features
-- **Patients:** register and list patients, with validation (IC number format, age 0–120) and duplicate IC detection
+- **Patients:** register and list patients, with validation (IC number format and date), date of birth and age calculated automatically from the IC, and duplicate IC detection
 - **Appointments:** book patients into today's queue with automatic queue numbers and fees (child / adult / senior)
 - **Live queue:** call and complete patients; only one patient can be "called" at a time; screens refresh every 5 seconds
 - **Security:** input whitelist (blocks mass assignment), CORS restricted to the web app, secrets kept in `.env`
@@ -49,8 +49,12 @@ npm install
 npm run start:dev       # API on http://localhost:3000
 ```
 
-**3. Web pages**
-- Open `web/index.html` with the VS Code **Live Server** extension (port 5500)
+**3. Frontend**
+```bash
+cd frontend
+npm install
+npm run dev             # website on http://localhost:3001
+```
 
 **4. Test the API**
 - Use `backend/requests.http` with the VS Code **REST Client** extension
@@ -60,10 +64,12 @@ npm run start:dev       # API on http://localhost:3000
 - **Validation & security:** NestJS `ValidationPipe` with `whitelist` blocks unexpected fields (mass assignment)
 - **CORS:** why browsers block cross-origin requests, and allowing only trusted origins
 - **Secrets:** keeping passwords out of Git with `.env` and `.env.example`
+- **Refactoring:** replaced a stored `age` column (goes stale every birthday) with `date_of_birth` derived from the IC, using a database migration
+- **React:** Server vs Client Components, `useState`, `useEffect` with cleanup, lifting state up
 - **Git workflow:** feature branches, pull requests and merging
 
 ## Roadmap
-- [ ] Rebuild the frontend with Next.js (React)
+- [x] Rebuild the frontend with Next.js (React)
 - [ ] Real-time queue updates with WebSockets
 - [ ] Legacy hospital system integration (PHP Yii2 + MariaDB)
 - [ ] Docker, CI/CD and deployment to AWS

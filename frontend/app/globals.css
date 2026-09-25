@@ -84,3 +84,5 @@ button.secondary { background: #e5e8eb; color: var(--text); }
 #message.success { color: #1b7f3b; }
 #message.error { color: #b00020; }
 p.error { color: #b00020; }
+
+button:disabled { opacity: 0.4; cursor: not-allowed; }

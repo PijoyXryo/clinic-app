@@ -13,9 +13,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  // Allow our web page (Live Server) to call this API
+  // Allow our Next.js frontend to call this API
   app.enableCors({
-    origin: ['http://127.0.0.1:5500', 'http://localhost:5500'],
+    origin: ['http://localhost:3001', 'http://127.0.0.1:3001'], // Next.js frontend
   });
   await app.listen(process.env.PORT ?? 3000);
 }
