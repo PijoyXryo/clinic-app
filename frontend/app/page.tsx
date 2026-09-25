@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import NowServing from '@/components/NowServing';
 import QueueTable from '@/components/QueueTable';
-import BookAppointmentForm from '@/components/BookAppointmentForm';
+import CheckInForm from '@/components/CheckInForm';
 import { api } from '@/lib/api';
 import type { Appointment, AppointmentStatus } from '@/lib/types';
 
@@ -62,8 +62,8 @@ export default function QueuePage() {
   return (
     <>
       <NowServing current={current} />
-      <BookAppointmentForm onBooked={loadQueue} />
-
+      <CheckInForm onBooked={loadQueue} />
+      
       <section className="card">
         <h2>Today&apos;s Queue ({queue.length})</h2>
         {error && <p className="error">⚠️ {error}</p>}

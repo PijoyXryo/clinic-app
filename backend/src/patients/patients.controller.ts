@@ -19,6 +19,12 @@ export class PatientsController {
     return this.patientsService.findAll();
   }
 
+  // GET /patients/by-ic/850612-10-1234
+  @Get('by-ic/:icNumber')
+  findByIc(@Param('icNumber') icNumber: string): Promise<Patient> {
+    return this.patientsService.findByIc(icNumber);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number): Promise<Patient> {
     return this.patientsService.findOne(id);

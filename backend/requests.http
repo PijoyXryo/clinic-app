@@ -76,3 +76,9 @@ Content-Type: application/json
 {
   "status": "sleeping"
 }
+
+### 12. Find patient by IC (returning patient)
+GET http://localhost:3000/patients/by-ic/850612-10-1234
+
+### 13. Unknown IC → 404 (new patient)
+GET http://localhost:3000/patients/by-ic/990101-01-0101

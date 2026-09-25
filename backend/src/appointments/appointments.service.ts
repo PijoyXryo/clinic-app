@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Appointment, type AppointmentStatus } from './appointment.entity.js';
@@ -29,6 +33,18 @@ export class AppointmentsService {
     // Throws 404 automatically if the patient doesn't exist
     const patient = await this.patientsService.findOne(dto.patientId);
 
+    // Business rule: a patient can't be in today's queue twice
+    const alreadyQueued = await this.appointmentsRepo
+      .createQueryBuilder('a')
+      .where('a.patient_id = :patientId', { patientId: patient.id })
+      .andWhere('a.visit_date = CURRENT_DATE')
+      .andWhere("a.status <> 'done'")
+      .getExists();
+    if (alreadyQueued) {
+      throw new ConflictException(
+        `${patient.fullName} is already in today's queue`,
+      );
+    }
     // Next queue number for today
     const { max } = await this.appointmentsRepo
       .createQueryBuilder('a')

@@ -1,6 +1,14 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
 
-// <T> = "tell me what type of data you expect back"
+// An error that remembers the HTTP status code (404, 409...)
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
@@ -10,7 +18,7 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
 
   if (!res.ok) {
     const text = Array.isArray(data.message) ? data.message.join(', ') : data.message;
-    throw new Error(text);
+    throw new ApiError(text, res.status);
   }
   return data as T;
 }

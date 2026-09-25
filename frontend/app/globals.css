@@ -86,3 +86,10 @@ button.secondary { background: #e5e8eb; color: var(--text); }
 p.error { color: #b00020; }
 
 button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Check-in results */
+.lookup-box { margin-top: 16px; padding: 12px 16px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; }
+.lookup-box p { margin: 0; }
+.lookup-box.found { background: #e8f5ec; }
+.lookup-box.new { background: #fff6dd; }
+.stack { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }

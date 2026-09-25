@@ -5,10 +5,15 @@ export function birthDateFromIc(ic: string): string | null {
 
   const [, yy, mm, dd] = match;
   const thisYearShort = new Date().getFullYear() % 100;
-  const year = Number(yy) > thisYearShort ? 1900 + Number(yy) : 2000 + Number(yy);
+  const year =
+    Number(yy) > thisYearShort ? 1900 + Number(yy) : 2000 + Number(yy);
 
   const birth = new Date(Date.UTC(year, Number(mm) - 1, Number(dd)));
-  if (birth.getUTCMonth() !== Number(mm) - 1 || birth.getUTCDate() !== Number(dd)) return null;
+  if (
+    birth.getUTCMonth() !== Number(mm) - 1 ||
+    birth.getUTCDate() !== Number(dd)
+  )
+    return null;
   if (birth > new Date()) return null;
 
   return `${year}-${mm}-${dd}`;

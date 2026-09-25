@@ -30,18 +30,30 @@ export class PatientsService {
     return patient;
   }
 
-    async create(dto: CreatePatientDto): Promise<Patient> {
+  async findByIc(icNumber: string): Promise<Patient> {
+    const patient = await this.patientsRepo.findOneBy({ icNumber });
+    if (!patient) {
+      throw new NotFoundException(`No patient registered with IC ${icNumber}`);
+    }
+    return patient;
+  }
+
+  async create(dto: CreatePatientDto): Promise<Patient> {
     const dateOfBirth = birthDateFromIc(dto.icNumber);
     if (!dateOfBirth) {
-      throw new BadRequestException('IC number does not contain a valid date of birth');
+      throw new BadRequestException(
+        'IC number does not contain a valid date of birth',
+      );
     }
 
     const exists = await this.patientsRepo.existsBy({ icNumber: dto.icNumber });
     if (exists) {
-      throw new ConflictException(`IC number ${dto.icNumber} is already registered`);
+      throw new ConflictException(
+        `IC number ${dto.icNumber} is already registered`,
+      );
     }
 
     const patient = this.patientsRepo.create({ ...dto, dateOfBirth });
     return this.patientsRepo.save(patient);
-    }
+  }
 }
