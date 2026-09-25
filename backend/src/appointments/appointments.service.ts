@@ -1,0 +1,69 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Appointment, type AppointmentStatus } from './appointment.entity.js';
+import { CreateAppointmentDto } from './dto/create-appointment.dto.js';
+import { PatientsService } from '../patients/patients.service.js';
+import { getFee } from './fee.js';
+
+@Injectable()
+export class AppointmentsService {
+  constructor(
+    @InjectRepository(Appointment)
+    private readonly appointmentsRepo: Repository<Appointment>,
+    private readonly patientsService: PatientsService,
+  ) {}
+
+  // Today's queue, with patient info (JOIN)
+  todayQueue(): Promise<Appointment[]> {
+    return this.appointmentsRepo
+      .createQueryBuilder('a')
+      .innerJoinAndSelect('a.patient', 'p')
+      .where('a.visit_date = CURRENT_DATE')
+      .orderBy('a.queue_number', 'ASC')
+      .getMany();
+  }
+
+  // Book a patient into today's queue
+  async book(dto: CreateAppointmentDto): Promise<Appointment> {
+    // Throws 404 automatically if the patient doesn't exist
+    const patient = await this.patientsService.findOne(dto.patientId);
+
+    // Next queue number for today
+    const { max } = await this.appointmentsRepo
+      .createQueryBuilder('a')
+      .select('COALESCE(MAX(a.queue_number), 0)', 'max')
+      .where('a.visit_date = CURRENT_DATE')
+      .getRawOne();
+
+    const appointment = this.appointmentsRepo.create({
+      patient,
+      queueNumber: Number(max) + 1,
+      reason: dto.reason ?? null,
+      status: 'waiting',
+      fee: getFee(patient.age),
+    });
+    return this.appointmentsRepo.save(appointment);
+  }
+
+  // Call / done / back to waiting
+  async updateStatus(id: number, status: AppointmentStatus): Promise<Appointment> {
+    const appointment = await this.appointmentsRepo.findOneBy({ id });
+    if (!appointment) {
+      throw new NotFoundException(`Appointment ${id} not found`);
+    }
+
+    // Only one patient can be "called" at a time
+    if (status === 'called') {
+      await this.appointmentsRepo
+        .createQueryBuilder()
+        .update(Appointment)
+        .set({ status: 'done' })
+        .where("status = 'called' AND visit_date = CURRENT_DATE")
+        .execute();
+    }
+
+    appointment.status = status;
+    return this.appointmentsRepo.save(appointment);
+  }
+}

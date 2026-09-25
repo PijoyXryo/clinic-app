@@ -44,3 +44,39 @@ Content-Type: application/json
   "age": 20,
   "isAdmin": true
 }
+
+### 7. Today's queue
+GET http://localhost:3000/appointments/today
+
+### 8. Book Faridah (use HER id from the patients page)
+POST http://localhost:3000/appointments
+Content-Type: application/json
+
+{
+  "patientId": 20011,
+  "reason": "Headache"
+}
+
+### 9. Book a patient that doesn't exist → 404
+POST http://localhost:3000/appointments
+Content-Type: application/json
+
+{
+  "patientId": 999999
+}
+
+### 10. Call appointment (change the id to one from #7)
+PATCH http://localhost:3000/appointments/1/status
+Content-Type: application/json
+
+{
+  "status": "called"
+}
+
+### 11. Invalid status → 400
+PATCH http://localhost:3000/appointments/1/status
+Content-Type: application/json
+
+{
+  "status": "sleeping"
+}

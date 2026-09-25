@@ -1,134 +1,115 @@
-// ===== 1. DATA =====
-let patients = []; // NEW: starts empty, filled by loadPatients()
-const STORAGE_KEY = "mediqueue-patients";
+// ===== SETTINGS =====
+const API_URL = "http://localhost:3000";
 
-function getFee(age) {
-  if (age < 12) return 25;
-  if (age >= 60) return 20;
-  return 35;
-}
-
-// Security: show typed HTML as plain text
-function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-// ===== 2. FIND elements =====
+// ===== FIND ELEMENTS =====
 const queueBody = document.querySelector("#queue-body");
 const nowNumber = document.querySelector("#now-number");
 const nowName = document.querySelector("#now-name");
-const form = document.querySelector("#register-form");
-const nameInput = document.querySelector("#name");
-const ageInput = document.querySelector("#age");
-const message = document.querySelector("#message");     // NEW
-const resetButton = document.querySelector("#reset");   // NEW
+const form = document.querySelector("#book-form");
+const bookBtn = document.querySelector("#book-btn");
+const message = document.querySelector("#message");
 
-// ===== 3. SAVE & LOAD (NEW) =====
-function save() {
-  // localStorage only stores text, so convert the array to JSON text
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(patients));
+// ===== HELPERS =====
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text ?? "";
+  return div.innerHTML;
 }
 
-async function loadPatients() {
-  // 1) If we saved data before, use it
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    patients = JSON.parse(saved);
-    render();
-    return;
-  }
-
-  // 2) Otherwise, load the starting data from the "server"
-  message.textContent = "Loading queue...";
-  try {
-    const response = await fetch("patients.json");
-    if (!response.ok) {
-      throw new Error(`Could not load queue (status ${response.status})`);
-    }
-    patients = await response.json();
-    message.textContent = "";
-    save();
-    render();
-  } catch (error) {
-    message.textContent = `⚠️ ${error.message}`;
-    message.className = "error";
-  }
+function showMessage(text, type) {
+  message.textContent = text;
+  message.className = type;
 }
 
-// ===== 4. RENDER =====
-function render() {
-  queueBody.innerHTML = patients
-    .map(
-      (p) => `
-      <tr>
-        <td>${p.number}</td>
-        <td>${escapeHtml(p.name)}</td>
-        <td>${p.age}</td>
-        <td>RM${getFee(p.age)}</td>
-        <td><span class="badge ${p.status}">${p.status}</span></td>
-        <td>
-          <button data-number="${p.number}" data-action="called">Call</button>
-          <button class="secondary" data-number="${p.number}" data-action="done">Done</button>
-        </td>
-      </tr>`
-    )
-    .join("");
-
-  const current = patients.find((p) => p.status === "called");
-  nowNumber.textContent = current ? `#${current.number}` : "—";
-  nowName.textContent = current ? current.name : "No one yet";
-}
-
-// ===== 5. EVENTS =====
-form.addEventListener("submit", (event) => {
-  event.preventDefault(); // stop the page from refreshing
-
-  const name = nameInput.value.trim();
-  if (!name) return;
-
-  // NEW: next number = biggest existing number + 1 (safer than length + 1)
-  const nextNumber = Math.max(0, ...patients.map((p) => p.number)) + 1;
-
-  patients.push({
-    number: nextNumber,
-    name: name,
-    age: Number(ageInput.value),
-    status: "waiting",
+// One function for ALL API calls: sends JSON, turns errors into readable messages
+async function api(path, options = {}) {
+  const response = await fetch(`${API_URL}${path}`, {
+    headers: { "Content-Type": "application/json" },
+    ...options,
   });
+  const data = await response.json();
+  if (!response.ok) {
+    const text = Array.isArray(data.message) ? data.message.join(", ") : data.message;
+    throw new Error(text);
+  }
+  return data;
+}
 
-  save(); // NEW
-  form.reset();
-  nameInput.focus();
-  render();
+// ===== LOAD & RENDER =====
+async function loadQueue() {
+  try {
+    const queue = await api("/appointments/today");
+    render(queue);
+  } catch (error) {
+    queueBody.innerHTML = `<tr><td colspan="7">⚠️ ${escapeHtml(error.message)}</td></tr>`;
+  }
+}
+
+function render(queue) {
+  if (queue.length === 0) {
+    queueBody.innerHTML = `<tr><td colspan="7">No appointments today yet.</td></tr>`;
+  } else {
+    queueBody.innerHTML = queue
+      .map(
+        (a) => `
+        <tr>
+          <td>${a.queueNumber}</td>
+          <td>${escapeHtml(a.patient.fullName)}</td>
+          <td>${a.patient.age ?? "-"}</td>
+          <td>${escapeHtml(a.reason ?? "-")}</td>
+          <td>RM${a.fee.toFixed(2)}</td>
+          <td><span class="badge ${a.status}">${a.status}</span></td>
+          <td>
+            <button data-id="${a.id}" data-status="called">Call</button>
+            <button class="secondary" data-id="${a.id}" data-status="done">Done</button>
+          </td>
+        </tr>`
+      )
+      .join("");
+  }
+
+  const current = queue.find((a) => a.status === "called");
+  nowNumber.textContent = current ? `#${current.queueNumber}` : "—";
+  nowName.textContent = current ? current.patient.fullName : "No one yet";
+}
+
+// ===== BOOK (POST) =====
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const body = {
+    patientId: Number(document.querySelector("#patientId").value),
+  };
+  const reason = document.querySelector("#reason").value.trim();
+  if (reason) body.reason = reason; // only send it if typed
+
+  bookBtn.disabled = true;
+  try {
+    const appt = await api("/appointments", { method: "POST", body: JSON.stringify(body) });
+    showMessage(`✅ ${appt.patient.fullName} is #${appt.queueNumber} (RM${appt.fee.toFixed(2)})`, "success");
+    form.reset();
+    loadQueue();
+  } catch (error) {
+    showMessage(`❌ ${error.message}`, "error");
+  } finally {
+    bookBtn.disabled = false;
+  }
 });
 
-queueBody.addEventListener("click", (event) => {
+// ===== CALL / DONE (PATCH) =====
+queueBody.addEventListener("click", async (event) => {
   const button = event.target.closest("button");
   if (!button) return;
-
-  const number = Number(button.dataset.number);
-  const action = button.dataset.action;
-
-  // Only one patient can be "called" at a time
-  if (action === "called") {
-    patients.forEach((p) => {
-      if (p.status === "called") p.status = "done";
+  try {
+    await api(`/appointments/${button.dataset.id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: button.dataset.status }),
     });
+    loadQueue();
+  } catch (error) {
+    showMessage(`❌ ${error.message}`, "error");
   }
-
-  const patient = patients.find((p) => p.number === number);
-  patient.status = action;
-  save(); // NEW
-  render();
 });
 
-// NEW: clear saved data and start fresh
-resetButton.addEventListener("click", () => {
-  localStorage.removeItem(STORAGE_KEY);
-  location.reload(); // refresh the page
-});
-
-// ===== 6. START =====
-loadPatients();
+// ===== START =====
+loadQueue();
+setInterval(loadQueue, 5000); // refresh every 5 seconds, so other screens see changes
