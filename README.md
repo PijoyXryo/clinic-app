@@ -25,7 +25,7 @@ clinic-app/
 ## Features
 - **Patients:** register and list patients, with validation (IC number format and date), date of birth and age calculated automatically from the IC, and duplicate IC detection
 - **Appointments:** book patients into today's queue with automatic queue numbers and fees (child / adult / senior)
-- **Live queue:** call and complete patients; only one patient can be "called" at a time; screens refresh every 5 seconds
+- **Live queue:** call and complete patients; only one patient can be "called" at a time; screens update instantly via WebSockets (Socket.IO) and reconnect automatically
 - **Hospital integration:** imports patients from a legacy PHP (Yii2) + MariaDB hospital system via REST, with API key auth, timeouts, and graceful fallback when it's down
 - **Security:** input whitelist (blocks mass assignment), CORS restricted to the web app, secrets kept in `.env`
 
@@ -65,6 +65,18 @@ npm run dev             # website on http://localhost:3001
 **4. Test the API**
 - Use `backend/requests.http` with the VS Code **REST Client** extension
 
+**Daily startup (all services)**
+
+| # | Service | How |
+|---|---|---|
+| 1 | PostgreSQL (clinic DB) | Starts automatically with Windows |
+| 2 | MariaDB (hospital DB) | XAMPP Control Panel → MySQL → Start |
+| 3 | Legacy hospital API (port 8080) | `cd legacy-his` → `php -S 127.0.0.1:8080 -t web web/index.php` |
+| 4 | Backend API (port 3000) | `cd backend` → `npm run start:dev` |
+| 5 | Frontend (port 3001) | `cd frontend` → `npm run dev` |
+
+Then open http://localhost:3001
+
 ## What I learned
 - **Query optimisation:** PostgreSQL does not index foreign keys automatically. Adding an index on `appointments.patient_id` made patient-history queries much faster on 1 million rows (measured with `EXPLAIN ANALYZE`)
 - **Validation & security:** NestJS `ValidationPipe` with `whitelist` blocks unexpected fields (mass assignment)
@@ -73,11 +85,12 @@ npm run dev             # website on http://localhost:3001
 - **Refactoring:** replaced a stored `age` column (goes stale every birthday) with `date_of_birth` derived from the IC, using a database migration
 - **React:** Server vs Client Components, `useState`, `useEffect` with cleanup, lifting state up
 - **Integration:** connecting to a legacy system with timeouts, 502/504 error handling, data mapping and graceful degradation
+- **WebSockets:** replaced 5-second polling with server push; the client reloads the full state after reconnecting
 - **Git workflow:** feature branches, pull requests and merging
 
 ## Roadmap
 - [x] Rebuild the frontend with Next.js (React)
-- [ ] Real-time queue updates with WebSockets
+- [x] Real-time queue updates with WebSockets
 - [x] Legacy hospital system integration (PHP Yii2 + MariaDB)
 - [ ] Docker, CI/CD and deployment to AWS
 - [ ] AI assistant (RAG with Ollama + Qdrant)
