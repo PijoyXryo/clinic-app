@@ -4,3 +4,5 @@ export function getFee(age?: number | null): number {
   if (age >= 60) return 20;
   return 35;
 }
+
+const broken: number = 'hello';
