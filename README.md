@@ -110,4 +110,4 @@ Then open http://localhost:3001
 - [x] Legacy hospital system integration (PHP Yii2 + MariaDB)
 - [x] Docker (all 5 services with Docker Compose)
 - [ ] CI/CD and deployment to AWS
-- [ ] AI assistant (RAG with Ollama + Qdrant)
+- [x] AI assistant (RAG with Ollama + Qdrant)
