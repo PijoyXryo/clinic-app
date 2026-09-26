@@ -9,6 +9,7 @@ import { Appointment, type AppointmentStatus } from './appointment.entity.js';
 import { CreateAppointmentDto } from './dto/create-appointment.dto.js';
 import { PatientsService } from '../patients/patients.service.js';
 import { getFee } from './fee.js';
+import { QueueGateway } from './queue.gateway.js'; // NEW
 
 @Injectable()
 export class AppointmentsService {
@@ -16,6 +17,7 @@ export class AppointmentsService {
     @InjectRepository(Appointment)
     private readonly appointmentsRepo: Repository<Appointment>,
     private readonly patientsService: PatientsService,
+    private readonly queueGateway: QueueGateway, // NEW
   ) {}
 
   // Today's queue, with patient info (JOIN)
@@ -45,6 +47,7 @@ export class AppointmentsService {
         `${patient.fullName} is already in today's queue`,
       );
     }
+
     // Next queue number for today
     const { max } = await this.appointmentsRepo
       .createQueryBuilder('a')
@@ -59,7 +62,9 @@ export class AppointmentsService {
       status: 'waiting',
       fee: getFee(patient.age),
     });
-    return this.appointmentsRepo.save(appointment);
+    const saved = await this.appointmentsRepo.save(appointment);
+    await this.notifyQueueChanged(); // NEW
+    return saved;
   }
 
   // Call / done / back to waiting
@@ -83,6 +88,13 @@ export class AppointmentsService {
     }
 
     appointment.status = status;
-    return this.appointmentsRepo.save(appointment);
+    const saved = await this.appointmentsRepo.save(appointment);
+    await this.notifyQueueChanged(); // NEW
+    return saved;
+  }
+
+  // NEW: send the fresh queue to every screen
+  private async notifyQueueChanged(): Promise<void> {
+    this.queueGateway.broadcastQueue(await this.todayQueue());
   }
 }

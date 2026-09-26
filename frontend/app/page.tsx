@@ -1,20 +1,20 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
 import NowServing from '@/components/NowServing';
 import QueueTable from '@/components/QueueTable';
 import CheckInForm from '@/components/CheckInForm';
-import { api } from '@/lib/api';
+import { api, API_URL } from '@/lib/api';
 import type { Appointment, AppointmentStatus } from '@/lib/types';
 
 export default function QueuePage() {
-  // ===== STATE: the page owns the data =====
   const [queue, setQueue] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [live, setLive] = useState(false); // NEW: is the WebSocket connected?
 
-  // ===== LOAD today's queue =====
   const loadQueue = useCallback(async () => {
     try {
       const data = await api<Appointment[]>('/appointments/today');
@@ -27,19 +27,27 @@ export default function QueuePage() {
     }
   }, []);
 
-  // ===== EFFECT: when the page appears, load now and every 5 seconds =====
-  // (setState is only called inside timer callbacks, which is what React recommends)
+  // NEW: one open connection instead of asking every 5 seconds
   useEffect(() => {
-    const first = setTimeout(loadQueue, 0);
-    const timer = setInterval(loadQueue, 5000);
+    const socket = io(API_URL);
+
+    socket.on('connect', () => {
+      setLive(true);
+      loadQueue(); // (re)connected: load the full queue in case we missed updates
+    });
+    socket.on('disconnect', () => setLive(false));
+
+    // The server pushes the new queue whenever anything changes
+    socket.on('queue:updated', (newQueue: Appointment[]) => {
+      setQueue(newQueue);
+      setError(null);
+    });
+
     return () => {
-      // cleanup: stop both timers when leaving the page
-      clearTimeout(first);
-      clearInterval(timer);
+      socket.disconnect(); // cleanup: close the connection when leaving the page
     };
   }, [loadQueue]);
 
-  // ===== Called by QueueTable when Call/Done is clicked =====
   async function changeStatus(id: number, status: AppointmentStatus) {
     setBusyId(id);
     try {
@@ -47,7 +55,7 @@ export default function QueuePage() {
         method: 'PATCH',
         body: JSON.stringify({ status }),
       });
-      await loadQueue();
+      // No need to reload: the server will push 'queue:updated' to everyone, including us
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -55,17 +63,20 @@ export default function QueuePage() {
     }
   }
 
-  // ===== DERIVED =====
   const current = queue.find((a) => a.status === 'called');
 
-  // ===== WHAT TO SHOW =====
   return (
     <>
       <NowServing current={current} />
-      <CheckInForm onBooked={loadQueue} />
-      
+      <CheckInForm onBooked={() => {}} />
+
       <section className="card">
-        <h2>Today&apos;s Queue ({queue.length})</h2>
+        <h2>
+          Today&apos;s Queue ({queue.length}){' '}
+          <small className={live ? 'live' : 'offline'}>
+            {live ? '● Live' : '● Reconnecting...'}
+          </small>
+        </h2>
         {error && <p className="error">⚠️ {error}</p>}
         {loading ? (
           <p>Loading...</p>
