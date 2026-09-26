@@ -1,0 +1,54 @@
+# Same CI as .github/workflows/ci.yml, written for Bitbucket Pipelines.
+# (This repo lives on GitHub, so this file is not run - it shows the
+#  Bitbucket version of the same pipeline.)
+image: node:24
+
+definitions:
+  caches:
+    backend-npm: backend/node_modules
+    frontend-npm: frontend/node_modules
+  steps:
+    - step: &backend
+        name: Backend (NestJS)
+        caches: [backend-npm]
+        script:
+          - cd backend
+          - npm ci
+          - npx tsc --noEmit -p tsconfig.build.json
+          - npm run build
+    - step: &frontend
+        name: Frontend (Next.js)
+        caches: [frontend-npm]
+        script:
+          - cd frontend
+          - npm ci
+          - npm run lint
+          - NEXT_PUBLIC_API_URL=http://localhost:3000 npm run build
+    - step: &legacy
+        name: Legacy HIS (PHP Yii2)
+        image: composer:2
+        caches: [composer]
+        script:
+          - cd legacy-his
+          - composer validate --no-check-publish
+          - composer install --no-interaction --no-progress --prefer-dist --ignore-platform-reqs
+          - find . -name "*.php" -not -path "./vendor/*" -print0 | xargs -0 -n1 php -l
+    - step: &docker
+        name: Docker images build
+        services: [docker]
+        script:
+          - docker compose build
+
+pipelines:
+  default:              # every push, any branch
+    - parallel:
+        - step: *backend
+        - step: *frontend
+        - step: *legacy
+    - step: *docker
+  pull-requests:
+    '**':
+      - parallel:
+          - step: *backend
+          - step: *frontend
+          - step: *legacy

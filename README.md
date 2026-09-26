@@ -1,5 +1,7 @@
 # 🏥 Klinik MediQueue
 
+[![CI](https://github.com/PijoyXryo/clinic-app/actions/workflows/ci.yml/badge.svg)](https://github.com/PijoyXryo/clinic-app/actions/workflows/ci.yml)
+
 A clinic queue and patient management system, built step by step while learning full-stack development.
 
 Receptionists register patients and book them into today's queue. The queue page shows who is being served and updates automatically on every screen.
@@ -127,6 +129,7 @@ The API auto-restarts on crash and when memory exceeds 300 MB. It runs as a sing
 - **Docker:** multi-stage Dockerfiles, Compose with health checks, container networking by service name
 - **RAG:** chunking, embeddings, vector search in Qdrant, prompt grounding with a similarity threshold to prevent hallucination
 - **PM2:** production builds, auto-restart on crash, memory limits, reading logs and finding which process holds a port
+- **CI/CD:** GitHub Actions runs type-check, lint, build, PHP syntax check and Docker builds on every push and pull request (a Bitbucket Pipelines version is in `bitbucket-pipelines.yml`)
 - **Git workflow:** feature branches, pull requests and merging
 
 ## Roadmap
@@ -135,5 +138,6 @@ The API auto-restarts on crash and when memory exceeds 300 MB. It runs as a sing
 - [x] Legacy hospital system integration (PHP Yii2 + MariaDB)
 - [x] Docker (all 5 services with Docker Compose)
 - [x] Production process management with PM2
-- [ ] CI/CD and deployment to AWS
+- [x] CI with GitHub Actions (+ Bitbucket Pipelines config)
+- [ ] Deployment to AWS (EC2 + S3)
 - [x] AI assistant (RAG with Ollama + Qdrant)
