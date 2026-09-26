@@ -7,6 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppointmentsModule } from './appointments/appointments.module.js';
 import { HisModule } from './his/his.module.js';
+import { AiModule } from './ai/ai.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -41,6 +42,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     PatientsModule,
     AppointmentsModule,
     HisModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

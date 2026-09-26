@@ -89,4 +89,29 @@ GET http://localhost:3000/his/patients
 ### 15. Sync all hospital patients into the clinic
 POST http://localhost:3000/his/sync
 
-POST http://localhost:3000/his/sync
+### 16. Load clinic documents into Qdrant
+POST http://localhost:3000/ai/ingest
+
+### 17. Ask: in the documents
+POST http://localhost:3000/ai/ask
+Content-Type: application/json
+
+{ "question": "What time do you close on Saturday?" }
+
+### 18. Ask: different words, same meaning
+POST http://localhost:3000/ai/ask
+Content-Type: application/json
+
+{ "question": "How much do I pay for my 8 year old son?" }
+
+### 19. Ask: NOT in the documents
+POST http://localhost:3000/ai/ask
+Content-Type: application/json
+
+{ "question": "What is the capital of France?" }
+
+### 20. Ask: medical advice (should refuse)
+POST http://localhost:3000/ai/ask
+Content-Type: application/json
+
+{ "question": "I have fever, what medicine should I take and how much?" }
