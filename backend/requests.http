@@ -88,3 +88,5 @@ GET http://localhost:3000/his/patients
 
 ### 15. Sync all hospital patients into the clinic
 POST http://localhost:3000/his/sync
+
+POST http://localhost:3000/his/sync

@@ -1,0 +1,87 @@
+# The whole clinic system. Start with:  docker compose up --build
+services:
+  # ---------- Clinic database ----------
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_dev_password}
+      POSTGRES_DB: clinic
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d clinic"]
+      interval: 5s
+      retries: 10
+
+  # ---------- Hospital (legacy) database ----------
+  mariadb:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root_dev_password}
+      MARIADB_DATABASE: his
+      MARIADB_USER: his
+      MARIADB_PASSWORD: ${HIS_DB_PASSWORD:-his_dev_password}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mariadbdata:/var/lib/mysql
+      - ./legacy-his/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      retries: 10
+
+  # ---------- Hospital (legacy) API: PHP Yii2 ----------
+  legacy-his:
+    build: ./legacy-his
+    environment:
+      HIS_DB_DSN: mysql:host=mariadb;port=3306;dbname=his
+      HIS_DB_USER: his
+      HIS_DB_PASSWORD: ${HIS_DB_PASSWORD:-his_dev_password}
+      HIS_API_KEY: ${HIS_API_KEY:-dev-key}
+    ports:
+      - "8080:8080"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  # ---------- Clinic API: NestJS ----------
+  backend:
+    build: ./backend
+    environment:
+      DB_HOST: postgres # the SERVICE NAME, not localhost!
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres_dev_password}
+      DB_NAME: clinic
+      HIS_URL: http://legacy-his:8080
+      HIS_API_KEY: ${HIS_API_KEY:-dev-key}
+      HIS_TIMEOUT_MS: 5000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      legacy-his:
+        condition: service_started
+
+  # ---------- Website: Next.js ----------
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3000 # used by the BROWSER
+    environment:
+      API_URL: http://backend:3000 # used by the Next.js SERVER (container to container)
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  mariadbdata:
