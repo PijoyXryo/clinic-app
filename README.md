@@ -104,6 +104,17 @@ npm run dev             # website on http://localhost:3001
 
 Then open http://localhost:3001
 
+## Run in production mode with PM2
+```bash
+npm install -g pm2
+cd backend && npm ci && npm run build && cd ..
+cd frontend && npm ci && npm run build && cd ..
+pm2 start ecosystem.config.cjs
+pm2 status        # both apps "online"
+pm2 monit         # live CPU / memory / logs
+```
+The API auto-restarts on crash and when memory exceeds 300 MB. It runs as a single instance because of WebSockets (scaling out would need the Socket.IO Redis adapter).
+
 ## What I learned
 - **Query optimisation:** PostgreSQL does not index foreign keys automatically. Adding an index on `appointments.patient_id` made patient-history queries much faster on 1 million rows (measured with `EXPLAIN ANALYZE`)
 - **Validation & security:** NestJS `ValidationPipe` with `whitelist` blocks unexpected fields (mass assignment)
@@ -115,6 +126,7 @@ Then open http://localhost:3001
 - **WebSockets:** replaced 5-second polling with server push; the client reloads the full state after reconnecting
 - **Docker:** multi-stage Dockerfiles, Compose with health checks, container networking by service name
 - **RAG:** chunking, embeddings, vector search in Qdrant, prompt grounding with a similarity threshold to prevent hallucination
+- **PM2:** production builds, auto-restart on crash, memory limits, reading logs and finding which process holds a port
 - **Git workflow:** feature branches, pull requests and merging
 
 ## Roadmap
@@ -122,5 +134,6 @@ Then open http://localhost:3001
 - [x] Real-time queue updates with WebSockets
 - [x] Legacy hospital system integration (PHP Yii2 + MariaDB)
 - [x] Docker (all 5 services with Docker Compose)
+- [x] Production process management with PM2
 - [ ] CI/CD and deployment to AWS
 - [x] AI assistant (RAG with Ollama + Qdrant)
