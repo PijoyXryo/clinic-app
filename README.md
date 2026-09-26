@@ -43,6 +43,21 @@ clinic-app/
 | POST | `/his/sync` | Import all hospital patients (idempotent) |
 | POST | `/his/import/:icNumber` | Import one patient by IC |
 
+## Run with Docker (easiest)
+Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+```bash
+docker compose up --build
+```
+Then open http://localhost:3001 and import hospital patients with `POST http://localhost:3000/his/sync`.
+
+| Service | URL / port |
+|---|---|
+| Website (Next.js) | http://localhost:3001 |
+| API (NestJS) | http://localhost:3000 |
+| Hospital API (Yii2) | http://localhost:8080 |
+| PostgreSQL | localhost:5433 |
+| MariaDB | localhost:3307 |
+
 ## Run it locally
 **1. Database**
 - Install PostgreSQL, create a database named `clinic`, and run `db/schema.sql`
@@ -86,11 +101,13 @@ Then open http://localhost:3001
 - **React:** Server vs Client Components, `useState`, `useEffect` with cleanup, lifting state up
 - **Integration:** connecting to a legacy system with timeouts, 502/504 error handling, data mapping and graceful degradation
 - **WebSockets:** replaced 5-second polling with server push; the client reloads the full state after reconnecting
+- **Docker:** multi-stage Dockerfiles, Compose with health checks, container networking by service name
 - **Git workflow:** feature branches, pull requests and merging
 
 ## Roadmap
 - [x] Rebuild the frontend with Next.js (React)
 - [x] Real-time queue updates with WebSockets
 - [x] Legacy hospital system integration (PHP Yii2 + MariaDB)
-- [ ] Docker, CI/CD and deployment to AWS
+- [x] Docker (all 5 services with Docker Compose)
+- [ ] CI/CD and deployment to AWS
 - [ ] AI assistant (RAG with Ollama + Qdrant)
