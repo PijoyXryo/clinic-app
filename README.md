@@ -27,6 +27,7 @@ clinic-app/
 - **Appointments:** book patients into today's queue with automatic queue numbers and fees (child / adult / senior)
 - **Live queue:** call and complete patients; only one patient can be "called" at a time; screens update instantly via WebSockets (Socket.IO) and reconnect automatically
 - **Hospital integration:** imports patients from a legacy PHP (Yii2) + MariaDB hospital system via REST, with API key auth, timeouts, and graceful fallback when it's down
+- **AI assistant:** answers questions about hours, fees and policies from clinic documents using RAG (Ollama + Qdrant), with sources and an "I don't know" guardrail
 - **Security:** input whitelist (blocks mass assignment), CORS restricted to the web app, secrets kept in `.env`
 
 ## API endpoints
@@ -42,6 +43,8 @@ clinic-app/
 | GET | `/his/patients` | Preview hospital (legacy) patients |
 | POST | `/his/sync` | Import all hospital patients (idempotent) |
 | POST | `/his/import/:icNumber` | Import one patient by IC |
+| POST | `/ai/ingest` | Load clinic documents (`backend/knowledge/`) into Qdrant |
+| POST | `/ai/ask` | Ask the clinic assistant (RAG) |
 
 ## Run with Docker (easiest)
 Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/).
@@ -57,6 +60,15 @@ Then open http://localhost:3001 and import hospital patients with `POST http://l
 | Hospital API (Yii2) | http://localhost:8080 |
 | PostgreSQL | localhost:5433 |
 | MariaDB | localhost:3307 |
+| Qdrant dashboard | http://localhost:6333/dashboard |
+| Ollama | http://localhost:11434 |
+
+First time only, download the AI models and load the documents:
+```bash
+docker compose exec ollama ollama pull nomic-embed-text
+docker compose exec ollama ollama pull llama3.2:1b
+```
+Then send `POST http://localhost:3000/ai/ingest`.
 
 ## Run it locally
 **1. Database**
@@ -102,6 +114,7 @@ Then open http://localhost:3001
 - **Integration:** connecting to a legacy system with timeouts, 502/504 error handling, data mapping and graceful degradation
 - **WebSockets:** replaced 5-second polling with server push; the client reloads the full state after reconnecting
 - **Docker:** multi-stage Dockerfiles, Compose with health checks, container networking by service name
+- **RAG:** chunking, embeddings, vector search in Qdrant, prompt grounding with a similarity threshold to prevent hallucination
 - **Git workflow:** feature branches, pull requests and merging
 
 ## Roadmap
